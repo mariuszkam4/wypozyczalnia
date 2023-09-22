@@ -49,6 +49,16 @@ class Wypozyczalnia:
         self.df = pd.concat([self.df, samochod_as_df], ignore_index = True)
         self.zapisz_baze()
     
+    def usun_samochod(self, nr_rej):
+        samochod_idx = self.df[self.df['nr_rej'] == nr_rej].index
+        if not samochod_idx.empty:
+            self.df = self.df.drop(samochod_idx)
+            self.zapisz_baze()
+            print (f"Samochód o nr rejestracyjnym {nr_rej} został usunięty z bazy.")
+        else:
+            print (f"Samochód o nr rejestracyjnym {nr_rej} nie został usunięty z bazy.")
+
+    
     def wyszukaj_po_paramterach (self, **kwargs):
         mask = pd.Series([True] * len(self.df))
         for k, v in kwargs.items():
@@ -110,7 +120,13 @@ def zwrot_samochodu():
     nr_rej = input("Wprowadź nr rejestracyjny samochodu, który chcesz zwrócic: \n")
     return nr_rej
 
-#obsługa klienta - wypożycz/zwróc
+def usuniecie_samochodu():
+    for samochod_info in wypozyczalnia.info():
+        print (samochod_info)
+    nr_rej = input ("Wprowdź nr rejestracyjny pojazdu który chcesz usunąć z bazy:\n")
+    return nr_rej 
+
+# obsługa klienta - wypożycz/zwróc
 while True:
     pytanie1 = input ("Chcesz wypożyczyć lub zwrócić pojazd? \n"
                       "Wprowadź nr komendy:\n"
@@ -128,7 +144,7 @@ while True:
     else:
         print ("Wprowadzono nieprawidłową komendę. Proszę wybrać z listy.")
 
-#wprowadzanie nowego samochodu do bazy
+# wprowadzanie nowego samochodu do bazy
 while True:
     pytanie2 = input ("Czy chcesz wprowadzić nowy samochód do bazy? Odpowiedz Tak lub Nie\n")
     if pytanie2.lower() == "tak":
@@ -137,3 +153,20 @@ while True:
     else:
         print ("Nie zdecydowano się dodać samochodu")
         break
+# usunięcie samochodu z bazy
+while True:
+    pytanie3 = input ("Czy chcesz usunąć pojazd z bazy? Odpowiedz Tak lub Nie\n")
+    if pytanie3.lower() == "tak":
+        nr_rej = usuniecie_samochodu()
+        wypozyczalnia.usun_samochod(nr_rej)
+        usunac_kolejny = input ("Czy chcesz usunąć kolejny samochód: Odpowiedz Tak lub Nie:\n")
+        if usunac_kolejny.lower() == "tak":
+            continue
+        elif usunac_kolejny.lower() == "nie":
+            break
+        else:
+            print ("Nieprawidłowa komenda, odpowiedz Tak lub Nie\n")
+    if pytanie3.lower() == "nie":
+        break
+    else:
+        print ("Nieprawidłowa komenda, odpowiedz Tak lub Nie.")
