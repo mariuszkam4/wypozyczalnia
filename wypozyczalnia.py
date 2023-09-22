@@ -1,0 +1,139 @@
+import json
+import pandas as pd
+
+class Samochod:
+    def __init__(self, nr_rej, marka, model, rok, paliwo):
+        self.nr_rej = nr_rej
+        self.marka = marka
+        self.model = model
+        self.rok = rok
+        self.paliwo = paliwo
+        self.wypozyczony = False
+
+    def pelne_dane(self):
+        return f"{self.nr_rej} {self.marka} {self.rok}"
+    
+    def __str__(self):
+        return self.pelne_dane()
+    
+    def wypozycz(self):
+        if not self.wypozyczony:
+            self.wypozyczony = True
+            return True
+        return False
+    
+    def zwroc(self):
+        if self.wypozyczony:
+            self.wypozyczony = False
+            return True
+        return False
+    
+    def info(self):
+        status = "wypożyczony" if self.wypozyczony else "dostępny"
+        return f"Samochód o numerze rejestracyjnym {self.nr_rej}, marki {self.marka}, z roku {self.rok} jest {status}."
+        
+class Wypozyczalnia:
+    def __init__ (self):
+        self.df = pd.DataFrame(columns=["nr_rej", "marka", "model", "rok", "paliwo", "wypozyczony"])
+    
+    def wczytaj_baze(self, plik="wypozyczalnia.json"):
+        with open(plik, 'r') as f:
+            dane = json.load(f)
+        self.df = pd.DataFrame(dane)
+    
+    def zapisz_baze(self, plik="wypozyczalnia.json"):
+        self.df.to_json(plik)
+
+    def dodaj_samochod (self, samochod):
+        samochod_as_df = pd.DataFrame([vars(samochod)])
+        self.df = pd.concat([self.df, samochod_as_df], ignore_index = True)
+        self.zapisz_baze()
+    
+    def wyszukaj_po_paramterach (self, **kwargs):
+        mask = pd.Series([True] * len(self.df))
+        for k, v in kwargs.items():
+            mask = mask & (self.df[k] == v)
+        return self.df[mask]
+
+    def wypozycz_samochod(self, nr_rej):
+        samochod_idx = self.df[self.df['nr_rej'] == nr_rej].index
+        if not samochod_idx.empty:
+            print(f"Status wypożyczenia dla samochodu {nr_rej}: {self.df.loc[samochod_idx, 'wypozyczony'].values[0]}")
+        
+        #przeprowadzenie opercji wypożyczenia pojazdu
+        if not samochod_idx.empty and self.df.loc[samochod_idx, 'wypozyczony'].values[0] == False:
+            self.df.loc[samochod_idx, 'wypozyczony'] = True
+            self.zapisz_baze()
+            print (f"Samochód o nr rejestracyjnym {nr_rej} został wypożyczony.")
+            return True
+        else:
+            print (f"Samochód o nr rejestracyjnym {nr_rej} jest niedostępny.")
+            return False
+            
+    def zwroc_samochod (self, nr_rej):
+        samochod_idx = self.df[self.df['nr_rej'] == nr_rej].index
+        if not samochod_idx.empty and self.df.loc[samochod_idx, 'wypozyczony'].values[0]:
+            self.df.loc[samochod_idx, 'wypozyczony'] = False
+            self.zapisz_baze()
+            print (f"Samochód o nr rejestracyjnym {nr_rej} został zwrócony.")
+            return True
+        return False
+    
+    def info(self):
+        info_list = []
+        for _, row in self.df.iterrows():
+            status = "wypożyczony" if row['wypozyczony'] == True else 'dostępny'
+            info_list.append(f"Samochód o numerze rejestracyjnym "
+                f"{row['nr_rej']}, "
+                f"marki {row['marka']}, "
+                f"z roku {row['rok']} ,"
+                f"zasilany paliwem {row['paliwo']} jest {status}.")
+        return info_list
+            
+wypozyczalnia = Wypozyczalnia()
+wypozyczalnia.wczytaj_baze()
+
+def wprowadzenie_samochodu():
+    nr_rej = input ("Podaj nr rejestracyjny pojazdu który chcesz wprowadzić: \n")
+    marka = input ("Wprowadź markę: \n")
+    model = input ("Wprowadź model samochodu: \n")
+    rok = int(input ("Wprowadź rok produkcji: \n"))
+    paliwo = input ("Wprowadź rodzaj paliwa (ON, benzyna, LPG, EV): \n")
+    return Samochod(nr_rej, marka, model, rok, paliwo)
+
+def wypozyczanie_samochodu():
+    for samochod_info in wypozyczalnia.info():
+        print (samochod_info)
+    nr_rej = input ("Wprowadź nr rejestracyjny samochodu który chcesz wypożyczyć: \n")
+    return nr_rej
+def zwrot_samochodu():
+    nr_rej = input("Wprowadź nr rejestracyjny samochodu, który chcesz zwrócic: \n")
+    return nr_rej
+
+#obsługa klienta - wypożycz/zwróc
+while True:
+    pytanie1 = input ("Chcesz wypożyczyć lub zwrócić pojazd? \n"
+                      "Wprowadź nr komendy:\n"
+                      "1. Wypożyczam samochód\n"
+                      "2. Zwracam samochód\n"
+                      "3. Żadna z powyższych\n")
+    if pytanie1 == "1":
+        nr_rej = wypozyczanie_samochodu()
+        wypozyczalnia.wypozycz_samochod(nr_rej)
+    elif pytanie1 == "2":
+        nr_rej = zwrot_samochodu()
+        wypozyczalnia.zwroc_samochod(nr_rej)
+    elif pytanie1 == "3":
+        break
+    else:
+        print ("Wprowadzono nieprawidłową komendę. Proszę wybrać z listy.")
+
+#wprowadzanie nowego samochodu do bazy
+while True:
+    pytanie2 = input ("Czy chcesz wprowadzić nowy samochód do bazy? Odpowiedz Tak lub Nie\n")
+    if pytanie2.lower() == "tak":
+        samochod = wprowadzenie_samochodu()
+        wypozyczalnia.dodaj_samochod(samochod)
+    else:
+        print ("Nie zdecydowano się dodać samochodu")
+        break
