@@ -96,6 +96,7 @@ class Wypozyczalnia:
             info_list.append(f"Samochód o numerze rejestracyjnym "
                 f"{row['nr_rej']}, "
                 f"marki {row['marka']}, "
+                f"model {row['model']}, "
                 f"z roku {row['rok']} ,"
                 f"zasilany paliwem {row['paliwo']} jest {status}.")
         return info_list
@@ -112,8 +113,23 @@ def wprowadzenie_samochodu():
     return Samochod(nr_rej, marka, model, rok, paliwo)
 
 def wypozyczanie_samochodu():
-    for samochod_info in wypozyczalnia.info():
-        print (samochod_info)
+    while True:
+        decyzja = input("Czy chcesz skorzystać z filtrów wyszukiwania? Tak/Nie \n")
+        if decyzja.lower() == "tak":
+            wynik = filtruj()
+            if wynik.empty:
+                print ("Brak samochodów spełniających podane kryteria.")
+                return None
+            for _, samochod in wynik.iterrows():
+                print (f"{samochod['nr_rej']} - {samochod['marka']} {samochod['model']} {samochod['rok']} {samochod['paliwo']}")
+            break
+        elif decyzja.lower() == "nie":
+            for samochod_info in wypozyczalnia.info():
+                print (samochod_info)
+            break
+        else:
+            print ("Wprowadzono niepoprawną komendę.")
+
     nr_rej = input ("Wprowadź nr rejestracyjny samochodu który chcesz wypożyczyć: \n")
     return nr_rej
 def zwrot_samochodu():
@@ -125,6 +141,48 @@ def usuniecie_samochodu():
         print (samochod_info)
     nr_rej = input ("Wprowdź nr rejestracyjny pojazdu który chcesz usunąć z bazy:\n")
     return nr_rej 
+
+def filtruj():
+    parametry = {}
+    dostepne_pojazdy = wypozyczalnia.df[wypozyczalnia.df['wypozyczony'] == False]
+    
+    def wybor_paramteru(lista_opcji):
+        while True:
+            for i, opcja in enumerate(lista_opcji, 1):
+                print (f"{i}. {opcja}")
+            try:
+                wybor = int(input("Wybierz numer paramteru:\n"))
+                if 1<= wybor <= len(lista_opcji):
+                    return lista_opcji[wybor - 1]
+                else:
+                    print ("Wybrano niepoprawny numer. Spróbuj ponownie.")
+            except ValueError:
+                print ("Proszę wporwadzić poprawny numer. Spróbuj ponownie.")
+
+    kolumny = ['marka', 'model', 'rok', 'paliwo']
+
+    for kolumna in kolumny:
+        decyzja = input (f"Czy chcesz sprawdzić dostępne pojazdy wg paramtru: {kolumna}? Tak/Nie\n")
+        
+        if decyzja.lower() == "tak":
+            
+            dostepne_opcje = dostepne_pojazdy[kolumna].unique().tolist()
+
+            if not dostepne_opcje:
+                print (f"Brak dostępnych pojazdów dla wybranego kryterium.")
+                continue
+
+            print (f"Dostępne pojazdy wg kryterium {kolumna}:")
+            wybrana_opcja = wybor_paramteru(dostepne_opcje)
+            parametry[kolumna] = wybrana_opcja
+
+            dostepne_pojazdy = dostepne_pojazdy[dostepne_pojazdy[kolumna] == wybrana_opcja]
+
+            if dostepne_pojazdy.empty:
+                print ("Brak dostępnych pojazdów spełniających podane wymagania.")
+                return pd.DataFrame()
+    
+    return dostepne_pojazdy
 
 # obsługa klienta - wypożycz/zwróc
 while True:
