@@ -58,7 +58,6 @@ class Wypozyczalnia:
         else:
             print (f"Samochód o nr rejestracyjnym {nr_rej} nie został usunięty z bazy.")
 
-    
     def wyszukaj_po_paramterach (self, **kwargs):
         mask = pd.Series([True] * len(self.df))
         for k, v in kwargs.items():

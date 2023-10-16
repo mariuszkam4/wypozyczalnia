@@ -70,15 +70,18 @@ def test_wypozyczalnia_zapisz_baze():
     
     os.remove(testowy_plik)
 
-# def test_wypozyczalnia_dodaj_samochod():
-#     wypozyczalnia = Wypozyczalnia()
-#     samochod = {"nr_rej": "XYZ 123", "marka": "Toyota", "model": "Yaris", "rok": 2020, "paliwo": "benzyna", "wypozyczony": False}
-#     wypozyczalnia.df = pd.DataFrame(samochod)
+def test_wypozyczalnia_dodaj_samochod(mocker):
+    wypozyczalnia = Wypozyczalnia()
+    dane_wejsciowe = ["XYZ 123", "Toyota", "Yaris", 2020, "benzyna"]
+    
+    mock_samochod = Samochod(*dane_wejsciowe)
 
-#     testowy_plik = 'test_baza_pojazdow.json'
-#     wypozyczalnia.dodaj_samochod(testowy_plik)
-#     oczekiwane_dane = wypozyczalnia.df.to_json()
+    wypozyczalnia.dodaj_samochod(mock_samochod)
 
-#     assert oczekiwane_dane == wypozyczalnia.df
+    assert wypozyczalnia.df.iloc[-1]["nr_rej"] == "XYZ 123"
+    assert wypozyczalnia.df.iloc[-1]["marka"] == "Toyota"
+    assert wypozyczalnia.df.iloc[-1]["model"] == "Yaris"
+    assert wypozyczalnia.df.iloc[-1]["rok"] == 2020
+    assert wypozyczalnia.df.iloc[-1]["paliwo"] == "benzyna"
 
 
