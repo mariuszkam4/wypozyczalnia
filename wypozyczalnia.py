@@ -11,7 +11,7 @@ class Samochod:
         self.wypozyczony = False
 
     def pelne_dane(self):
-        return f"{self.nr_rej} {self.marka} {self.rok}"
+        return f"{self.nr_rej} {self.marka} {self.model} {self.rok} {self.paliwo}"
     
     def __str__(self):
         return self.pelne_dane()
@@ -42,7 +42,7 @@ class Wypozyczalnia:
         self.df = pd.DataFrame(dane)
     
     def zapisz_baze(self, plik="baza_pojazdow.json"):
-        self.df.to_json(plik)
+        self.df.to_json(plik, orient='records', force_ascii=False)
 
     def dodaj_samochod (self, samochod):
         samochod_as_df = pd.DataFrame([vars(samochod)])
