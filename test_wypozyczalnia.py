@@ -6,62 +6,73 @@ import os
 
 from wypozyczalnia import Samochod, Wypozyczalnia 
 
-def test_samochod_pelne_dane():
-    samochod = Samochod ('XYZ 123', 'Toyota', "Yaris", 2020, 'benzyna')
-    assert str(samochod) == "XYZ 123 Toyota Yaris 2020 benzyna"
+@pytest.fixture
+def wypozyczalnia():
+    return Wypozyczalnia()
 
-def test_samochod_wypozycz():
-    samochod = Samochod ("XYZ 123", "Toyota", "Yaris", 2020, "benzyna")
-    assert samochod.wypozycz() == True
-    assert samochod.wypozycz() == False
-    assert samochod.wypozyczony == True
+@pytest.fixture
+def samochod():
+    return Samochod ("XYZ 0013", "Toyota", "Yaris", 2020, "benzyna")
 
-def test_zwroc_samochod():
-    samochod = Samochod ("XYZ 123", "Toyota", "Yaris", 2020, "benzyna")
-    samochod.wypozycz()
-    assert samochod.zwroc() == True
-    assert samochod.wypozyczony == False
-
-def test_info_samochod():
-    samochod = Samochod ("XYZ 123", "Toyota", "Yaris", 2020, "benzyna")
-    assert samochod.info().startswith ("Samochód o numerze rejestracyjnym XYZ 123, marki Toyota, z roku 2020 jest")
-
-def test_wypozyczalnia_dodaj_samochod():
-    wypozyczalnia = Wypozyczalnia()
-    samochod = Samochod ("XYZ 123", "Toyota", "Yaris", 2020, "benzyna")
-    wypozyczalnia.dodaj_samochod(samochod)
-    assert len(wypozyczalnia.df) == 1
-    assert wypozyczalnia.df['marka'].iloc[0] == 'Toyota'
-
-def test_wypozyczalnia_usun_samochod():
-    wypozyczalnia = Wypozyczalnia()
-    samochod = Samochod ("XYZ 123", "Toyota", "Yaris", 2020, "benzyna")
-    wypozyczalnia.dodaj_samochod(samochod)
-    wypozyczalnia.usun_samochod('XYZ 123')
-    assert len(wypozyczalnia.df) == 0
-
-def test_wypozyczalnia_wczytaj_baze():
-    wypozyczalnia = Wypozyczalnia()
-    wypozyczalnia.wczytaj_baze('baza_pojazdow.json')
-
-    with open('baza_pojazdow.json', 'r') as f:
-        dane = json.load(f)
-    oczekiwana_df = pd.DataFrame(dane)
-
-    assert wypozyczalnia.df.equals(oczekiwana_df)
-
-def test_wypozyczalnia_zapisz_baze():
-    wypozyczalnia = Wypozyczalnia()
+@pytest.fixture
+def testowy_plik(wypozyczalnia):
     dane = [
         {"nr_rej": "XYZ 123", "marka": "Toyota", "model": "Yaris", "rok": 2020, "paliwo": "benzyna", "wypozyczony": False},
         {"nr_rej": "ABC 456", "marka": "Ford", "model": "Focus", "rok": 2019, "paliwo": "diesel", "wypozyczony": True}
     ]
     wypozyczalnia.df = pd.DataFrame(dane)
 
-    with tempfile.NamedTemporaryFile(suffix='.json', delete=True) as temp_file:
-        testowy_plik = temp_file.name
-    wypozyczalnia.zapisz_baze(testowy_plik)
+    temp_file = tempfile.NamedTemporaryFile(suffix='.json', delete=False)
+    testowy_plik = temp_file.name
+    temp_file.close()
+    return testowy_plik
 
+def test_samochod_pelne_dane(samochod):
+    assert str(samochod) == "XYZ 0013 Toyota Yaris 2020 benzyna"
+
+def test_samochod_wypozycz(samochod):
+    assert samochod.wypozycz() == True
+    assert samochod.wypozycz() == False
+    assert samochod.wypozyczony == True
+
+def test_zwroc_samochod(samochod):
+    samochod.wypozycz()
+    assert samochod.zwroc() == True
+    assert samochod.wypozyczony == False
+
+def test_info_samochod(samochod):
+    assert samochod.info().startswith ("Samochód o numerze rejestracyjnym XYZ 0013, marki Toyota, z roku 2020 jest")
+
+def test_wypozyczalnia_dodaj_samochod(monkeypatch, wypozyczalnia, samochod):
+    monkeypatch.setattr(wypozyczalnia, 'zapisz_baze', lambda: None)
+
+    wypozyczalnia.dodaj_samochod(samochod)
+
+    assert len(wypozyczalnia.df) == 1
+    assert wypozyczalnia.df['marka'].iloc[0] == 'Toyota'
+
+def test_wypozyczalnia_usun_samochod(monkeypatch, wypozyczalnia, samochod):
+    monkeypatch.setattr(wypozyczalnia, 'zapisz_baze', lambda: None)
+
+    wypozyczalnia.dodaj_samochod(samochod)
+    wypozyczalnia.usun_samochod('XYZ 0013')
+    assert len(wypozyczalnia.df) == 0
+
+def test_wypozyczalnia_wczytaj_baze(wypozyczalnia, testowy_plik):
+    wypozyczalnia.zapisz_baze(testowy_plik)
+    
+    wypozyczalnia.wczytaj_baze(testowy_plik)
+
+    with open(testowy_plik, 'r') as f:
+        dane = json.load(f)
+    oczekiwana_df = pd.DataFrame(dane)
+
+    assert wypozyczalnia.df.equals(oczekiwana_df)
+
+    os.remove(testowy_plik)
+
+def test_wypozyczalnia_zapisz_baze(wypozyczalnia, testowy_plik):
+    wypozyczalnia.zapisz_baze(testowy_plik)
     with open(testowy_plik, 'r') as f:
         zapisane_dane = json.load(f)
     
@@ -70,18 +81,13 @@ def test_wypozyczalnia_zapisz_baze():
     
     os.remove(testowy_plik)
 
-def test_wypozyczalnia_dodaj_samochod(mocker):
-    wypozyczalnia = Wypozyczalnia()
-    dane_wejsciowe = ["XYZ 123", "Toyota", "Yaris", 2020, "benzyna"]
-    
-    mock_samochod = Samochod(*dane_wejsciowe)
+def test_wypozyczalnia_dodaj_samochod(monkeypatch,wypozyczalnia, samochod):
+    monkeypatch.setattr(wypozyczalnia, 'zapisz_baze', lambda: None)
 
-    wypozyczalnia.dodaj_samochod(mock_samochod)
+    wypozyczalnia.dodaj_samochod(samochod)
 
-    assert wypozyczalnia.df.iloc[-1]["nr_rej"] == "XYZ 123"
+    assert wypozyczalnia.df.iloc[-1]["nr_rej"] == "XYZ 0013"
     assert wypozyczalnia.df.iloc[-1]["marka"] == "Toyota"
     assert wypozyczalnia.df.iloc[-1]["model"] == "Yaris"
     assert wypozyczalnia.df.iloc[-1]["rok"] == 2020
     assert wypozyczalnia.df.iloc[-1]["paliwo"] == "benzyna"
-
-
