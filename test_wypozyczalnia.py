@@ -17,7 +17,7 @@ def samochod():
 @pytest.fixture
 def testowy_plik(wypozyczalnia):
     dane = [
-        {"nr_rej": "XYZ 123", "marka": "Toyota", "model": "Yaris", "rok": 2020, "paliwo": "benzyna", "wypozyczony": False},
+        {"nr_rej": "XYZ 0013", "marka": "Toyota", "model": "Yaris", "rok": 2020, "paliwo": "benzyna", "wypozyczony": False},
         {"nr_rej": "ABC 456", "marka": "Ford", "model": "Focus", "rok": 2019, "paliwo": "diesel", "wypozyczony": True}
     ]
     wypozyczalnia.df = pd.DataFrame(dane)
@@ -43,20 +43,7 @@ def test_zwroc_samochod(samochod):
 def test_info_samochod(samochod):
     assert samochod.info().startswith ("Samochód o numerze rejestracyjnym XYZ 0013, marki Toyota, z roku 2020 jest")
 
-def test_wypozyczalnia_dodaj_samochod(monkeypatch, wypozyczalnia, samochod):
-    monkeypatch.setattr(wypozyczalnia, 'zapisz_baze', lambda: None)
 
-    wypozyczalnia.dodaj_samochod(samochod)
-
-    assert len(wypozyczalnia.df) == 1
-    assert wypozyczalnia.df['marka'].iloc[0] == 'Toyota'
-
-def test_wypozyczalnia_usun_samochod(monkeypatch, wypozyczalnia, samochod):
-    monkeypatch.setattr(wypozyczalnia, 'zapisz_baze', lambda: None)
-
-    wypozyczalnia.dodaj_samochod(samochod)
-    wypozyczalnia.usun_samochod('XYZ 0013')
-    assert len(wypozyczalnia.df) == 0
 
 def test_wypozyczalnia_wczytaj_baze(wypozyczalnia, testowy_plik):
     wypozyczalnia.zapisz_baze(testowy_plik)
@@ -91,3 +78,42 @@ def test_wypozyczalnia_dodaj_samochod(monkeypatch,wypozyczalnia, samochod):
     assert wypozyczalnia.df.iloc[-1]["model"] == "Yaris"
     assert wypozyczalnia.df.iloc[-1]["rok"] == 2020
     assert wypozyczalnia.df.iloc[-1]["paliwo"] == "benzyna"
+
+def test_wypozyczalnia_dodaj_samochod(monkeypatch, wypozyczalnia, samochod):
+    monkeypatch.setattr(wypozyczalnia, 'zapisz_baze', lambda: None)
+
+    wypozyczalnia.dodaj_samochod(samochod)
+
+    assert len(wypozyczalnia.df) == 1
+    assert wypozyczalnia.df['marka'].iloc[0] == 'Toyota'
+
+def test_wypozyczalnia_usun_samochod(monkeypatch, wypozyczalnia, samochod):
+    monkeypatch.setattr(wypozyczalnia, 'zapisz_baze', lambda: None)
+
+    wypozyczalnia.dodaj_samochod(samochod)
+    wypozyczalnia.usun_samochod('XYZ 0013')
+    assert len(wypozyczalnia.df) == 0
+
+def test_wypozyczalnia_wyszukaj_po_parametrach(wypozyczalnia):
+    dane_testowe = [
+        {"nr_rej": "XYZ 123", "marka": "Toyota", "model": "Yaris", "rok": 2020, "paliwo": "benzyna", "wypozyczony": False},
+        {"nr_rej": "ABC 456", "marka": "Ford", "model": "Focus", "rok": 2019, "paliwo": "diesel", "wypozyczony": True},
+        {"nr_rej": "GHI 789", "marka": "Toyota", "model": "Corolla", "rok": 2018, "paliwo": "benzyna", "wypozyczony": False}
+    ]
+
+    wypozyczalnia.df = pd.DataFrame(dane_testowe)
+
+    wynik = wypozyczalnia.wyszukaj_po_parametrach(marka = "Toyota")
+    assert len(wynik) == 2
+    assert set(wynik['nr_rej']) == {"XYZ 123", "GHI 789"}
+
+    wynik = wypozyczalnia.wyszukaj_po_parametrach(rok = 2019)
+    assert len(wynik) == 1
+    assert wynik.iloc[0]['nr_rej'] == "ABC 456"
+
+    wynik = wypozyczalnia.wyszukaj_po_parametrach (marka = "Toyota", paliwo = "diesel")
+    assert wynik.empty
+
+    wynik = wypozyczalnia.wyszukaj_po_parametrach(paliwo = "benzyna", wypozyczony = False)
+    assert len(wynik) == 2
+    assert set(wynik["nr_rej"]) == {"XYZ 123", "GHI 789"}
