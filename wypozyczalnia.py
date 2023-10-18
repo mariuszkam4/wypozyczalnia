@@ -66,10 +66,6 @@ class Wypozyczalnia:
 
     def wypozycz_samochod(self, nr_rej):
         samochod_idx = self.df[self.df['nr_rej'] == nr_rej].index
-        if not samochod_idx.empty:
-            print(f"Status wypożyczenia dla samochodu {nr_rej}: {self.df.loc[samochod_idx, 'wypozyczony'].values[0]}")
-        
-        #przeprowadzenie opercji wypożyczenia pojazdu
         if not samochod_idx.empty and self.df.loc[samochod_idx, 'wypozyczony'].values[0] == False:
             self.df.loc[samochod_idx, 'wypozyczony'] = True
             self.zapisz_baze()
@@ -147,7 +143,7 @@ if __name__ == "__main__":
         parametry = {}
         dostepne_pojazdy = wypozyczalnia.df[wypozyczalnia.df['wypozyczony'] == False]
         
-        def wybor_paramteru(lista_opcji):
+        def wybor_parametru(lista_opcji):
             while True:
                 for i, opcja in enumerate(lista_opcji, 1):
                     print (f"{i}. {opcja}")
@@ -174,7 +170,7 @@ if __name__ == "__main__":
                     continue
 
                 print (f"Dostępne pojazdy wg kryterium {kolumna}:")
-                wybrana_opcja = wybor_paramteru(dostepne_opcje)
+                wybrana_opcja = wybor_parametru(dostepne_opcje)
                 parametry[kolumna] = wybrana_opcja
 
                 dostepne_pojazdy = dostepne_pojazdy[dostepne_pojazdy[kolumna] == wybrana_opcja]
