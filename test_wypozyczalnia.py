@@ -43,8 +43,6 @@ def test_zwroc_samochod(samochod):
 def test_info_samochod(samochod):
     assert samochod.info().startswith ("Samochód o numerze rejestracyjnym XYZ 0013, marki Toyota, z roku 2020 jest")
 
-
-
 def test_wypozyczalnia_wczytaj_baze(wypozyczalnia, testowy_plik):
     wypozyczalnia.zapisz_baze(testowy_plik)
     
@@ -79,14 +77,6 @@ def test_wypozyczalnia_dodaj_samochod(monkeypatch,wypozyczalnia, samochod):
     assert wypozyczalnia.df.iloc[-1]["rok"] == 2020
     assert wypozyczalnia.df.iloc[-1]["paliwo"] == "benzyna"
 
-def test_wypozyczalnia_dodaj_samochod(monkeypatch, wypozyczalnia, samochod):
-    monkeypatch.setattr(wypozyczalnia, 'zapisz_baze', lambda: None)
-
-    wypozyczalnia.dodaj_samochod(samochod)
-
-    assert len(wypozyczalnia.df) == 1
-    assert wypozyczalnia.df['marka'].iloc[0] == 'Toyota'
-
 def test_wypozyczalnia_usun_samochod(monkeypatch, wypozyczalnia, samochod):
     monkeypatch.setattr(wypozyczalnia, 'zapisz_baze', lambda: None)
 
@@ -117,3 +107,51 @@ def test_wypozyczalnia_wyszukaj_po_parametrach(wypozyczalnia):
     wynik = wypozyczalnia.wyszukaj_po_parametrach(paliwo = "benzyna", wypozyczony = False)
     assert len(wynik) == 2
     assert set(wynik["nr_rej"]) == {"XYZ 123", "GHI 789"}
+
+def test_wypozyczalnia_wypozycz_samochod_logika(monkeypatch, wypozyczalnia):
+    monkeypatch.setattr(wypozyczalnia, 'zapisz_baze', lambda:None)
+    dane_testowe = [
+        {"nr_rej": "XYZ 123", "wypozyczony": False},
+        {"nr_rej": "ABC 456", "wypozyczony": True},        
+    ]
+    wypozyczalnia.df = pd.DataFrame(dane_testowe)
+
+    wynik = wypozyczalnia.wypozycz_samochod(nr_rej = 'XYZ 123')
+    assert wynik == True
+
+    wynik = wypozyczalnia.wypozycz_samochod(nr_rej = 'ABC 456')
+    assert wynik == False
+
+def test_wypozyczalnia_wypozycz_samochod_komunikaty(monkeypatch, wypozyczalnia, capsys):
+    monkeypatch.setattr(wypozyczalnia, 'zapisz_baze', lambda:None)
+    dane_testowe = [
+        {"nr_rej": "XYZ 123", "wypozyczony": False},
+        {"nr_rej": "ABC 456", "wypozyczony": True},        
+    ]
+    wypozyczalnia.df = pd.DataFrame(dane_testowe)
+
+    wynik = wypozyczalnia.wypozycz_samochod(nr_rej = 'XYZ 123')
+    assert wynik == True
+    odpowiedz = capsys.readouterr()
+    assert "Samochód o nr rejestracyjnym XYZ 123 został wypożyczony." in odpowiedz.out
+
+    wynik = wypozyczalnia.wypozycz_samochod(nr_rej = 'ABC 456')
+    assert wynik == False
+    odpowiedz = capsys.readouterr()
+    assert "Samochód o nr rejestracyjnym ABC 456 jest niedostępny." in odpowiedz.out
+
+def test_wypozyczalnia_wypozycz_samochod_aktualizacja_bazy(monkeypatch, wypozyczalnia):
+    monkeypatch.setattr(wypozyczalnia, 'zapisz_baze', lambda:None)
+    dane_testowe = [
+        {"nr_rej": "XYZ 123", "wypozyczony": False},
+        {"nr_rej": "ABC 456", "wypozyczony": True},        
+    ]
+    wypozyczalnia.df = pd.DataFrame(dane_testowe)
+
+    wynik = wypozyczalnia.wypozycz_samochod(nr_rej = 'XYZ 123')
+    assert wynik == True
+    assert wypozyczalnia.df.loc[wypozyczalnia.df['nr_rej'] == 'XYZ 123', 'wypozyczony'].all()
+
+    wynik = wypozyczalnia.wypozycz_samochod(nr_rej = 'ABC 456')
+    assert wynik == False
+    assert wypozyczalnia.df.loc[wypozyczalnia.df['nr_rej'] == 'ABC 456', 'wypozyczony'].all()
