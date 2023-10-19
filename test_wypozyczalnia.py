@@ -155,3 +155,21 @@ def test_wypozyczalnia_wypozycz_samochod_aktualizacja_bazy(monkeypatch, wypozycz
     wynik = wypozyczalnia.wypozycz_samochod(nr_rej = 'ABC 456')
     assert wynik == False
     assert wypozyczalnia.df.loc[wypozyczalnia.df['nr_rej'] == 'ABC 456', 'wypozyczony'].all()
+
+def test_wypozyczalnia_zwroc_samochod(monkeypatch, wypozyczalnia, capsys):
+    monkeypatch.setattr(wypozyczalnia, 'zapisz_baze', lambda:None)
+    dane_testowe = [
+        {"nr_rej": "XYZ 123", "wypozyczony": False},
+        {"nr_rej": "ABC 456", "wypozyczony": True},        
+    ]
+    wypozyczalnia.df = pd.DataFrame(dane_testowe)
+
+    wynik = wypozyczalnia.zwroc_samochod(nr_rej = 'XYZ 123')
+    assert wynik == False
+
+    wynik = wypozyczalnia.zwroc_samochod(nr_rej = 'ABC 456')
+    assert wynik == True
+    odpowiedz = capsys.readouterr()
+    assert "Samochód o nr rejestracyjnym ABC 456 został zwrócony." in odpowiedz.out
+    assert wypozyczalnia.df.loc[wypozyczalnia.df['nr_rej'] == 'ABC 456', 'wypozyczony'].eq(False).all()
+
