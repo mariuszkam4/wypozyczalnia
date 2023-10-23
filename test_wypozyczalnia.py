@@ -173,3 +173,17 @@ def test_wypozyczalnia_zwroc_samochod(monkeypatch, wypozyczalnia, capsys):
     assert "Samochód o nr rejestracyjnym ABC 456 został zwrócony." in odpowiedz.out
     assert wypozyczalnia.df.loc[wypozyczalnia.df['nr_rej'] == 'ABC 456', 'wypozyczony'].eq(False).all()
 
+def test_wypozyczalnia_info(wypozyczalnia):
+    dane_testowe = [
+        {"nr_rej": "XYZ 123", "marka": "Toyota", "model": "Yaris", "rok": 2020, "paliwo": "benzyna", "wypozyczony": False},
+        {"nr_rej": "ABC 456", "marka": "Ford", "model": "Focus", "rok": 2019, "paliwo": "diesel", "wypozyczony": True},
+    ]
+    wypozyczalnia.df = pd.DataFrame(dane_testowe)
+    
+    wynik = wypozyczalnia.info()
+   
+    expected_1 = "Samochód o numerze rejestracyjnym XYZ 123, marki Toyota, model Yaris, z roku 2020, zasilany paliwem benzyna jest dostępny."
+    expected_2 = "Samochód o numerze rejestracyjnym ABC 456, marki Ford, model Focus, z roku 2019, zasilany paliwem diesel jest wypożyczony."
+    
+    assert expected_1 in wynik
+    assert expected_2 in wynik

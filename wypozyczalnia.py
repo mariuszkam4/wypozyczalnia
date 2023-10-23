@@ -92,7 +92,7 @@ class Wypozyczalnia:
                 f"{row['nr_rej']}, "
                 f"marki {row['marka']}, "
                 f"model {row['model']}, "
-                f"z roku {row['rok']} ,"
+                f"z roku {row['rok']}, "
                 f"zasilany paliwem {row['paliwo']} jest {status}.")
         return info_list
             
