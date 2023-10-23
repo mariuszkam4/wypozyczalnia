@@ -14,8 +14,48 @@ Manages the car database in the rental service. It allows for loading the databa
 * 'wypozyczanie_samochodu()': Enables the user to choose a car to rent.
 * 'zwrot_samochodu()': Allows the user to return a rented car.
 
+## Test Section
+The project prioritizes reliability and accuracy, so a variety of testing methods were used to check key system functionalities.
+
+### Unit Tests:
+Unit tests focus on the Car and Rental objects, checking the correctness of their methods. For example, the tests check that the methods responsible for renting a car actually update its status and that the information methods return the correct data.
+
+### Integration Tests:
+The integration tests used ensure that the various components of the system work together as expected. Particular emphasis is placed on data management - verifying that database read and write operations are performed correctly and that data is consistently stored and updated.
+
+### Functional Testing:
+Functional tests are performed to ensure that the application logic works as expected. For example, the handling of car rental and return scenarios is checked, including the correctness of the messages displayed to the user.
+
+### Testing with Fixtures:
+Tests use the fixture function in pytest to create a fixed, immutable environment, which is used in many cases due to frequent interactions with the vehicle database. This avoids code repetition and ensures consistency of test data between different tests.
+
+### Mocking Techniques:
+In several cases, mocking techniques are used to isolate tests from external dependencies and focus on internal logic. This allows us to test methods that would normally require writing to the database, without having to actually perform this operation.
+
 ## How to run?
-Make sure you have the necessary libraries installed (pandas and json), then run the main script of the program. The script operates on a vehicle database stored in the 'wypozyczalnia.json' file. Ensure the file is downloaded and saved in the same directory as the 'wypozyczalnia.py' script file.
+To launch the project, follow the steps below:
+
+### Clone the repository:
+If you haven't already done so, download the project to your local computer. You can do this by cloning the repository using the following command in a terminal (make sure you have git installed):
+git clone https://github.com/mariuszkam4/wypozyczalnia.git
+
+### Installing the necessary libraries:
+The project requires the pandas library to be installed. In addition, in order to run unit tests, you should have the pytest library. If you don't already have them in your environment, you can install the necessary libraries using the pip package manager. Open a terminal in the root directory of your project and type:
+pip install pandas
+pip install pytest
+
+### Prepare the database file:
+The script runs on the vehicle database stored in the 'baza_pojazdow.json' file. Make sure that the 'baza_pojazdow.json' file is downloaded and is in the same directory as the main 'wypozyczalnia.py' script. If the file does not exist, create it in the appropriate format or make sure your script can handle the absence of this file.
+
+Running the script:
+After installing the necessary libraries and preparing the database file, you can run the script. In the terminal, while in the project directory, type:
+python wypozyczalnia.py
+
+Follow the messages printed out and follow the instructions displayed by the program (if available).
+
+If the script does not work properly or you have made changes to it, check if it passes the tests properly. To do this, in the terminal wills in the project directory, type:
+pytest test_wypozyczalnia.py
+
 
 PL
 # Wypożyczalnia Samochodów
@@ -35,5 +75,46 @@ Zarządza bazą danych samochodów w wypożyczalni. Umożliwia wczytanie bazy z 
 * `wypozyczanie_samochodu()`: Umożliwia użytkownikowi wybór samochodu do wypożyczenia.
 * `zwrot_samochodu()`: Umożliwia użytkownikowi zwrot wypożyczonego samochodu.
 
+## Sekcja Testów
+W projekcie priorytetem jest zapewnienie niezawodności i precyzji, dlatego zastosowano różnorodne metody testowania do sprawdzenia kluczowych funkcjonalności systemu.
+
+### Testy Jednostkowe:
+Testy jednostkowe koncentrują się na obiektach Samochod i Wypozyczalnia, sprawdzając poprawność działania ich metod. Na przykład, testy sprawdzają czy metody odpowiedzialne za wypożyczanie samochodu faktycznie aktualizują jego status oraz czy metody informacyjne zwracają odpowiednie dane.
+
+### Testy Integracyjne:
+Zastosowane testy integracyjne zapewniają, że różne komponenty systemu współpracują ze sobą zgodnie z oczekiwaniami. Szczególny nacisk kładziony jest na zarządzanie danymi - sprawdzenie, czy operacje odczytu i zapisu do bazy danych są wykonywane prawidłowo, a dane są konsekwentnie przechowywane i aktualizowane.
+
+### Testy Funkcjonalne:
+Wykonywane są testy funkcjonalne, aby upewnić się, że logika aplikacji działa zgodnie z oczekiwaniami. Na przykład sprawdzeniu podlega obsługa scenariuszy wypożyczania i zwrotu samochodów, w tym poprawność komunikatów wyświetlanych użytkownikowi.
+
+### Testowanie z użyciem Fixture'ów:
+Testy korzystają z funkcji fixture w pytest do tworzenia stałego, niezmiennego środowiska, które jest używane w wielu przypadkach z uwagi na częste interakcji z bazą danych pojazdów. Pozwala to na uniknięcie powtarzania kodu oraz zapewnia spójność danych testowych pomiędzy różnymi testami.
+
+### Techniki Mockowania:
+W kilku przypadkach stosowanę są techniki mockowania, aby izolować testy od zewnętrznych zależności i skupić się na logice wewnętrznej. Dzięki temu możemy możliwe jest testowanie metod, które normalnie wymagałyby zapisu do bazy danych, bez konieczności faktycznego wykonywania tej operacji.
+
 ## Jak uruchomić?
-Upewnij się, że masz zainstalowane niezbędne biblioteki (`pandas` i `json`), a następnie uruchom główny skrypt programu. Działanie skryptu opiera się na bazie danych pojazdów przechowywanych w pliku 'wypozyczalnia.json' Upewnij się, że plik jest pobrany i zapisany w tym samym katalogu w którym znajduje się plik skryptu 'wypozyczalnia.py'. 
+Aby uruchomić projekt, postępuj zgodnie z poniższymi krokami:
+
+### Klonowanie repozytorium:
+Jeśli jeszcze tego nie zrobiłeś, pobierz projekt na swój lokalny komputer. Możesz to zrobić, klonując repozytorium za pomocą poniższego polecenia w terminalu (upewnij się, że masz zainstalowanego git-a):
+git clone https://github.com/mariuszkam4/wypozyczalnia.git
+
+### Instalacja niezbędnych bibliotek:
+Projekt wymaga zainstalowania biblioteki pandas. Dodatkowo w celu przeporwadzenia testów jednostkowych należy posiadać bibliotekę pytest. Jeśli nie masz ich jeszcze w swoim środowisku, możesz zainstalować niezbędne biblioteki, korzystając z menedżera pakietów pip. Otwórz terminal w głównym katalogu projektu i wpisz:
+pip install pandas
+pip install pytest
+
+### Przygotowanie pliku z bazą danych:
+Skrypt działa na bazie danych pojazdów przechowywanych w pliku 'wypozyczalnia.json'. Upewnij się, że plik 'wypozyczalnia.json' jest pobrany i znajduje się w tym samym katalogu co główny skrypt 'wypozyczalnia.py'. Jeśli plik nie istnieje, utwórz go w odpowiednim formacie lub upewnij się, że Twój skrypt potrafi obsłużyć brak tego pliku.
+
+Uruchomienie skryptu:
+Po zainstalowaniu potrzebnych bibliotek i przygotowaniu pliku z bazą danych możesz uruchomić skrypt. W terminalu, będąc w katalogu projektu, wpisz:
+python wypozyczalnia.py
+
+Śledź wypisywane komunikaty i postępuj zgodnie z instrukcjami wyświetlanymi przez program (jeśli są dostępne).
+
+Jeżeli skrypt nie działa prawidłowo lub dokonywałeś w nim zmian, sprawdź czy przechodzi prawidłowo testy. W tym celu w terminalu będąs w katalogu projektu wpisz:
+pytest test_wypozyczalnia.py
+
+
